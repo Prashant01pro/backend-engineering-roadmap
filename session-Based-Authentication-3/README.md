@@ -6,7 +6,7 @@
 
 ---
 
-## 📌 Project Overview
+##  Project Overview
 
 This project implements a production-grade, stateful, server-side session authentication system built from the ground up without using high-level black-box packages like `express-session`. 
 
@@ -14,7 +14,7 @@ It demonstrates how browsers, cookies, HTTP headers, in-memory/Redis stores, and
 
 ---
 
-## 🚀 Features Implemented
+##  Features Implemented
 
 | Feature | Description | Status |
 | :--- | :--- | :---: |
@@ -29,13 +29,13 @@ It demonstrates how browsers, cookies, HTTP headers, in-memory/Redis stores, and
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```mermaid
 flowchart TD
     subgraph Clients ["Clients (Multiple Devices)"]
-        Laptop["💻 Laptop (Chrome)\nCookie: sessionId_1"]
-        Phone["📱 Phone (Safari)\nCookie: sessionId_2"]
+        Laptop[" Laptop (Chrome)\nCookie: sessionId_1"]
+        Phone[" Phone (Safari)\nCookie: sessionId_2"]
     end
 
     subgraph Backend ["Express.js API"]
@@ -44,8 +44,8 @@ flowchart TD
     end
 
     subgraph Storage ["Databases"]
-        Redis[("⚡ Upstash Redis\n• session:id1 (TTL 7d)\n• session:id2 (TTL 7d)\n• user_sessions:userId (Set)")]
-        Mongo[("🍃 MongoDB\n• User credentials & hashed passwords")]
+        Redis[(" Upstash Redis\n• session:id1 (TTL 7d)\n• session:id2 (TTL 7d)\n• user_sessions:userId (Set)")]
+        Mongo[(" MongoDB\n• User credentials & hashed passwords")]
     end
 
     Laptop & Phone --> AuthMiddleware
@@ -56,7 +56,7 @@ flowchart TD
 
 ---
 
-## 📡 API Endpoints
+##  API Endpoints
 
 ### 1. Public Authentication Routes (`/auth`)
 
@@ -77,7 +77,7 @@ flowchart TD
 
 ---
 
-## 💡 Core Concepts & Learnings
+##  Core Concepts & Learnings
 
 ### 1. Cookies & Browser Security
 * **`httpOnly: true`**: Prohibits client-side JavaScript (`document.cookie`) from accessing the session cookie, eliminating XSS token theft.
@@ -109,7 +109,7 @@ flowchart TD
 
 ---
 
-## ⚙️ Environment Configuration (`.env`)
+##  Environment Configuration (`.env`)
 
 ```env
 PORT=3000
@@ -119,7 +119,7 @@ REDIS_URI=rediss://default:<password>@<host>.upstash.io:6379
 
 ---
 
-## 🏃 Running the Application
+##  Running the Application
 
 ```bash
 # 1. Install dependencies

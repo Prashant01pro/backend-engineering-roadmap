@@ -1,4 +1,4 @@
-# 🚀 Backend Development Learning Series
+#  Backend Development Learning Series
 
 A comprehensive, hands-on backend learning repository demonstrating the evolution of modern authentication, authorization, and session architectures using **Node.js**, **Express**, **MongoDB**, and **Redis**.
 
@@ -6,7 +6,7 @@ This repository is designed for developers, students, and engineers who want to 
 
 ---
 
-## 📚 Curriculum & Projects Overview
+##  Curriculum & Projects Overview
 
 The projects are structured sequentially, progressing from token-based authentication to advanced distributed session management:
 
@@ -61,7 +61,7 @@ equireRole('ADMIN')\)
 
 ---
 
-## 🛠️ Tech Stack & Tools
+##  Tech Stack & Tools
 
 - **Runtime**: Node.js (v18+)
 - **Framework**: Express.js (v5)
@@ -73,7 +73,7 @@ odemailer\, \dotenv\, \cors\
 
 ---
 
-## ⚡ Quick Start Guide
+##  Quick Start Guide
 
 ### 1. Clone the Repository
 \\\ash
@@ -113,7 +113,7 @@ npm start
 
 ---
 
-## 🔒 Security Best Practices Followed
+##  Security Best Practices Followed
 
 - **Never Commit Secrets**: Real credentials and \.env\ files are strictly excluded via \.gitignore\. Templates are provided in \.env.example\.
 - **HTTP-Only Cookies**: Prevents Cross-Site Scripting (XSS) from reading sensitive authentication tokens.
@@ -123,7 +123,7 @@ npm start
 
 ---
 
-## 🤝 Contributing & Feedback
+##  Contributing & Feedback
 
 Contributions, corrections, and improvements are welcome! If you find a bug or want to suggest an architecture pattern:
 1. Fork the repository
@@ -134,5 +134,5 @@ Contributions, corrections, and improvements are welcome! If you find a bug or w
 
 ---
 
-## 📄 License
+##  License
 This project is open-source and available under the [MIT License](LICENSE).
