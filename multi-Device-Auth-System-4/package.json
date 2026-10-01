@@ -1,0 +1,23 @@
+{
+  "name": "multi-device-auth-system-4",
+  "version": "1.0.0",
+  "description": "multi-device authentication system combination of both session and tokens",
+  "license": "ISC",
+  "author": "prashant kumar",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.10.3",
+    "nodemailer": "^10.0.13"
+  }
+}

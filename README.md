@@ -10,12 +10,14 @@ This repository is designed for developers, students, and engineers who want to 
 
 The projects are structured sequentially, progressing from token-based authentication to advanced distributed session management:
 
-`
-Backend-Project-Learning/
-├── secure-Api-Project-1/             # Phase 1: Stateless JWT Authentication
-├── role-Based-Api-2/                 # Phase 2: Role-Based Access Control (RBAC)
-└── session-Based-Authentication-3/   # Phase 3: Stateful Distributed Sessions with Redis
-`
+```
+  Backend-Project-Learning/
+    |
+    ├── secure-Api-Project-1/             # Phase 1: Stateless JWT Authentication
+    ├── role-Based-Api-2/                 # Phase 2: Role-Based Access Control (RBAC)
+    ├── session-Based-Authentication-3/   # Phase 3: Stateful Distributed Sessions with Redis
+    └── multi-Device-Auth-System-4/       # Phase 4: Multi-Device Hybrid Auth (JWT + Redis RTR)
+```
 
 ---
 
@@ -59,6 +61,21 @@ equireRole('ADMIN')\)
   - Session hijacking defense: User-Agent and IP fingerprint verification
 - **Documentation**: [Project 3 Readme](./session-Based-Authentication-3/README.md) & [Route Architecture Guide](./session-Based-Authentication-3/ROUTE_FLOW_GUIDE.md)
 
+---
+### 4. [Multi-Device Hybrid Authentication System](./multi-Device-Auth-System-4)
+> **Focus**: Combining stateless JWTs with stateful Redis sessions for low-latency API verification, Refresh Token Rotation (RTR), and instant multi-device revocation.
+
+- **Key Concepts**:
+  - **Hybrid Authentication Architecture**: Ultra-fast stateless Access Tokens (JWT, 15m) for routine API calls with zero database latency, paired with stateful Refresh Tokens in Redis for real-time device tracking.
+  - **Multi-Device Tracking**: Independent session creation per device with User-Agent and IP extraction (e.g. Chrome Laptop, Android Phone, Firefox macOS).
+  - **Active Device Dashboard**: `GET /api/v1/auth/sessions` with contextual `isCurrentDevice` indicator.
+  - **Granular Session Revocation**: Logout current device, remotely revoke a specific device, or logout all devices everywhere.
+  - **Refresh Token Rotation (RTR)**: Each refresh invalidates the old token and issues a new one; session TTL is preserved via Redis `KEEPTTL`.
+  - **Breach Detection Kill-Switch**: Automatic detection of token reuse; if a stolen token is submitted, the server instantly purges the entire device session.
+  - **Fast Cryptographic Hashing**: SHA-256 one-way hashing for high-entropy tokens (<0.005ms) avoiding Node thread-pool bottlenecks.
+  - **Two-Key Redis Indexing & Self-Healing**: `session:${sessionId}` (string with 7-day TTL) + `user_sessions:${userId}` (set index with lazy cleanup of expired keys).
+  - **Post-Reset Global Eviction**: Resetting a password automatically triggers a global Redis session purge across all devices.
+- **Documentation**: [Project 4 Readme](./multi-Device-Auth-System-4/README.md), [Route Flow Guide](./multi-Device-Auth-System-4/ROUTE_FLOWS.md), & [Postman Collection](./multi-Device-Auth-System-4/postman_collection.json)
 ---
 
 ##  Tech Stack & Tools
