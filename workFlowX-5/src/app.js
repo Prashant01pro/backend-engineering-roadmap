@@ -5,6 +5,9 @@ import authRouter from './features/auth/auth.route.js'
 import userRouter from './features/users/user.route.js'
 import projectsRouter from './features/projects/project.route.js'
 import taskRouter from './features/tasks/task.route.js'
+import noteRouter from './features/notes/note.route.js'
+import transactionRouter from './features/transactions/transaction.route.js'
+import dashboardRouter from './features/dashboard/dashboard.route.js';
 
 const app = express()
 
@@ -23,6 +26,9 @@ app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/users',userRouter)
 app.use('/api/v1/projects',projectsRouter)
 app.use('/api/v1/tasks',taskRouter)
+app.use('/api/v1/notes',noteRouter)
+app.use('/api/v1/transactions',transactionRouter)
+app.use('/api/v1/dashboard',dashboardRouter)
 
 app.use(globalErrorHandler)
 
