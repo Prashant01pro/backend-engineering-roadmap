@@ -8,6 +8,7 @@ import taskRouter from './features/tasks/task.route.js'
 import noteRouter from './features/notes/note.route.js'
 import transactionRouter from './features/transactions/transaction.route.js'
 import dashboardRouter from './features/dashboard/dashboard.route.js';
+import adminRouter from './features/admin/admin.route.js';
 
 const app = express()
 
@@ -29,6 +30,7 @@ app.use('/api/v1/tasks',taskRouter)
 app.use('/api/v1/notes',noteRouter)
 app.use('/api/v1/transactions',transactionRouter)
 app.use('/api/v1/dashboard',dashboardRouter)
+app.use('/api/v1/admin', adminRouter);
 
 app.use(globalErrorHandler)
 

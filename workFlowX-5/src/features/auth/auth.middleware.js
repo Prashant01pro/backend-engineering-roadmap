@@ -34,7 +34,7 @@ export const authenticate = catchAsync(async (req, _, next) => {
         }
 
         req.user = user
-        req.sessionId=decoded?.sessionId  // attach sessionId in req
+        req.sessionId = decoded?.sessionId  // attach sessionId in req
 
         next()
     } catch (error) {
@@ -44,6 +44,16 @@ export const authenticate = catchAsync(async (req, _, next) => {
         return next(new AppError('Invalid token', 401));
     }
 });
+
+export const authorize = (...roles) => {
+    return (req, _, next) => {
+
+        if (!req.user || !roles.includes(req.user.role)) {
+            return next(new AppError('You do not have permission to perform this action',403))
+        }
+        next()
+    }
+}
 
 
 // In JavaScript and Node.js, using an underscore(_) as a function parameter is a universal naming convention that means: "This parameter is required by the framework, but I am not using it in my code."

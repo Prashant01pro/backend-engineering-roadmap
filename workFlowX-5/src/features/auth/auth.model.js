@@ -19,22 +19,27 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required:[true,'Please provide a password'],
-            select:false,
+            required: [true, 'Please provide a password'],
+            select: false,
             minLength: 10,
             maxLength: 100
         },
-        bio:{
-            type:String,
-            optional:true
+        bio: {
+            type: String,
+            optional: true
         },
-        resetPasswordToken:{
-            type:String,
-            select:false 
+        role: {
+            type: String,
+            enum: ['user', 'admin'],
+            default: 'user'
         },
-        resetPasswordExpires:{
-            type:Date,
-            select:false
+        resetPasswordToken: {
+            type: String,
+            select: false
+        },
+        resetPasswordExpires: {
+            type: Date,
+            select: false
         }
 
     },
