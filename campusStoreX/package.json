@@ -1,0 +1,24 @@
+{
+  "name": "campusstorex",
+  "version": "1.0.0",
+  "description": "campusStoreX is the store where students can buy and sell and also rent items",
+  "license": "ISC",
+  "author": "Prashant Kumar",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.0",
+    "nodemailer": "^10.0.15",
+    "zod": "^4.6.5"
+  }
+}
