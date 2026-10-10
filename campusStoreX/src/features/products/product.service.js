@@ -66,8 +66,8 @@ export const getAllProductsService = async (queryParams) => {
         Product.find(filter)
             .populate('category', 'name')
             .populate('seller', 'name email')
-             .sort({ [sortBy]: sortDirection })        
-            .sort(skip)
+            .sort({ [sortBy]: sortDirection })
+            .skip(skip)
             .limit(Number(limit)),
         Product.countDocuments(filter)
     ])
@@ -151,5 +151,5 @@ export const deleteProductService = async (productId, sellerId) => {
     return { message: 'Product successfully deactivated' };
 };
 
-  
+
 
