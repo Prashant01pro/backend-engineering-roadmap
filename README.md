@@ -17,7 +17,8 @@ The projects are structured sequentially, progressing from core token-based auth
     ├── role-Based-Api-2/                 # Phase 2: Role-Based Access Control (RBAC)
     ├── session-Based-Authentication-3/   # Phase 3: Stateful Distributed Sessions with Redis
     ├── multi-Device-Auth-System-4/       # Phase 4: Multi-Device Hybrid Auth (JWT + Redis RTR)
-    └── workFlowX-5/                      # Phase 5: Complete Enterprise REST API Suite (Projects, Tasks, Notes, Finances, Analytics & Admin RBAC)
+    ├── workFlowX-5/                      # Phase 5: Complete Enterprise REST API Suite (Projects, Tasks, Notes, Finances, Analytics & Admin RBAC)
+    └── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
 ```
 
 ---
@@ -93,6 +94,30 @@ The projects are structured sequentially, progressing from core token-based auth
   - **Real-Time Dashboard Analytics**: Single-endpoint analytical view executing 6 concurrent database operations in parallel via `Promise.all` (projects breakdown, task breakdown, overdue alerts, notes tally, finances, and upcoming tasks).
   - **Admin RBAC & Cascade Governance**: Dual-middleware guard (`authenticate` + `authorize('admin')`), platform-wide metrics, user directory, role updating, project/task moderation, cascade deletions (purging all associated child records across collections), and admin self-lockout prevention.
 - **Documentation**: [WorkFlowX Master Readme](./workFlowX-5/README.md) & [Complete Route Making Flow Blueprint](./workFlowX-5/WORKFLOWX_ROUTES_MAKING_FLOW.md)
+
+---
+
+### 6. [CampusStore (CampusStoreX) — Student Marketplace & Database-First Architecture](./campusStoreX)
+> **Focus**: Production-grade MongoDB & Mongoose architectural engineering. Master document modeling (Embedding vs. Referencing), snapshot denormalization, race condition prevention, multi-document ACID transactions, and advanced multi-stage aggregation analytics.
+
+- **Key Concepts**:
+  - **Database-First, Not Feature-First**: Answers the critical backend question: *"Given product requirements, how do you architect an optimal, consistent, and scalable MongoDB database?"*
+  - **The 10 Master Collections**: `users`, `categories`, `products`, `inventory`, `stockTransactions`, `follows`, `carts`, `orders`, `payments`, and `reviews`.
+  - **Embedded Subdocuments vs. Normalized References**:
+    - Embedded: `Product.specifications` (tied lifecycle, zero joins), `Cart.items[]` (atomic 20-item bound), `Order.items[]` (frozen financial receipt).
+    - Normalized References: `Inventory` (isolated write-heavy stock state), `Reviews` (prevents unbounded array growth), `Follows` (isolated $N:M$ junction).
+  - **Snapshot Data (Denormalization)**: Freezes product name and price inside `Order.items[]` at the exact moment of checkout to preserve financial and accounting history regardless of future catalog price changes.
+  - **Derived vs. Stored State**: Computes `available` inventory on the fly (`quantity - reserved`) via Mongoose virtuals, and derives `averageRating` via aggregation pipelines instead of storing stale fields.
+  - **Race Condition Defense & Concurrency**:
+    - Atomic conditional updates: `$gte` inventory checks with `$inc: { quantity: -qty }` to prevent negative stock and overselling.
+    - Multi-Document ACID Transactions: Guarantees that order creation, inventory deduction, sale audit logging, mock payment generation, and cart clearing all succeed together or cleanly roll back.
+  - **Immutable Append-Only Audit Ledger**: `StockTransactions` tracks every unit movement (`PURCHASE`, `SALE`, `RETURN`, `DAMAGE`, `ADJUSTMENT`) with user attribution.
+  - **Compound Unique Constraints**:
+    - `{ follower: 1, following: 1 }` prevents duplicate follows at the database level.
+    - `{ user: 1, product: 1 }` guarantees only one review per student per product.
+  - **Verified Buyer Purchase Verification**: Enforces that only students with a completed order (`status: 'COMPLETED'`) containing the product can leave reviews.
+  - **7 Production Aggregation Pipelines**: Multi-stage analytics including Total Sales, Best-Selling Products (`$unwind` + `$group` + `$sort`), Sales by Category (double `$lookup` join), Seller Revenue, User Spending, and Product Stock Breakdown.
+- **Documentation**: [CampusStore Readme](./campusStoreX/README.md) & [Complete Route Making Flow Blueprint](./campusStoreX/ROUTES_BLUEPRINT.md)
 
 ---
 

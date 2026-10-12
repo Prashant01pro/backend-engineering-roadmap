@@ -10,6 +10,7 @@ import followRouter from './features/follows/follow.route.js'
 import cartRouter from './features/cart/cart.route.js'
 import orderRouter from './features/orders/order.route.js'
 import reviewRouter from './features/reviews/review.route.js'
+import analyticsRouter from './features/analystics/analystic.route.js'
 
 
 const app = express()
@@ -34,6 +35,7 @@ app.use('/api/v1/follows', followRouter)
 app.use('/api/v1/cart', cartRouter)
 app.use('/api/v1/orders', orderRouter)
 app.use('/api/v1/reviews', reviewRouter)
+app.use('/api/v1/analystics', analyticsRouter)
 
 
 
