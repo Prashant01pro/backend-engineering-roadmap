@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import{ catchAsync }from '../../utils/catchAsync.js';
 import { followUserService, unfollowUserService, getFollowersService, getFollowingService, } from './follow.service.js';
 
 export const followUser = catchAsync(async (req, res) => {

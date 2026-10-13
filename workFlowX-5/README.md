@@ -644,3 +644,7 @@ curl -i -X GET http://localhost:8000/api/v1/admin/stats \
   -b cookies.txt
 ```
 *Returns `200 OK` with system-wide platform statistics!*
+
+### Step 11: Automated Postman Testing
+You can import [postman.collection.json](./postman.collection.json) directly into Postman to immediately execute all 51 requests across every module. 
+* Tokens, cookies, and IDs (`projectId`, `taskId`, `noteId`, `transactionId`, `userId`) are automatically extracted and populated across requests via built-in test scripts.

@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import {catchAsync} from '../../utils/catchAsync.js';
 import { getCartService, addToCartService, updateCartItemService, removeCartItemService, clearCartService, } from './cart.service.js';
 
 export const getCart = catchAsync(async (req, res) => {

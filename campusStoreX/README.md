@@ -293,3 +293,7 @@ npm start
 
 ---
 
+## 10. 📖 Related Guides & Testing
+
+- 👉 **[ROUTES_BLUEPRINT.md](./ROUTES_BLUEPRINT.md)**: A complete, route-by-route execution blueprint detailing step-by-step implementation flows, business logic, topics used, and package dependencies for every endpoint in the project.
+- 🚀 **[postman.collection.json](./postman.collection.json)**: Ready-to-import Postman collection with automated test scripts and collection variables (`accessToken`, `sellerAccessToken`, `categoryId`, `productId`, `orderId`) for comprehensive end-to-end testing.

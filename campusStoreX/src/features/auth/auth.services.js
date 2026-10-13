@@ -15,13 +15,11 @@ export const registerService = async (body,req) => {
     }
 
     if(password.length <10){
-        throw new AppError('Password must be greater than 10 characters')
+        throw new AppError('Password must be greater than 10 characters',400)
     }
 
     // find user either on basis of name or email : $or is mongobd operator
-    const existingUser = await User.findOne({
-        $or: [{ name }, { email }]
-    })
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() })
     if (existingUser) {
         throw new AppError('User already Exist', 409)
     }

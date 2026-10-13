@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import {catchAsync} from '../../utils/catchAsync.js';
 import { getTotalSalesService, getBestSellingProductsService, getSalesByCategoryService, getSellerRevenueService, getUserSpendingService, getProductStockBreakdownService, } from './analystic.service.js';
 
 export const getTotalSales = catchAsync(async (req, res) => {

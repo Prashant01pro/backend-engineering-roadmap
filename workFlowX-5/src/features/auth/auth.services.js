@@ -16,7 +16,7 @@ export const registerService = async (body,req) => {
     }
 
     if(password.length <10){
-        throw new AppError('Password must be greater than 10 characters')
+        throw new AppError('Password must be greater than 10 characters',400)
     }
 
     // find user either on basis of name or email : $or is mongobd operator

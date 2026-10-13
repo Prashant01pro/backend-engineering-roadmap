@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import {catchAsync} from '../../utils/catchAsync.js';
 import { createProductService, getAllProductsService, getProductByIdService, updateProductService, deleteProductService, } from './product.service.js';
 
 export const createProduct = catchAsync(async (req, res) => {

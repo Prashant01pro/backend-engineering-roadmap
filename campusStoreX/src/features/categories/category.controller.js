@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import { catchAsync } from '../../utils/catchAsync.js';
 import { createCategoryService, getAllCategoriesService, getCategoryByIdService, updateCategoryService, } from './category.service.js';
 
 

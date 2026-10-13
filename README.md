@@ -93,7 +93,7 @@ The projects are structured sequentially, progressing from core token-based auth
   - **Financial Modeling (Income & Expenses)**: Positive amount modeling rule, transaction date vs. entry timestamp, date range queries (`$gte`, `$lte`), and multi-stage aggregation pipeline calculating income, expenses, net balance, and expense breakdown by category.
   - **Real-Time Dashboard Analytics**: Single-endpoint analytical view executing 6 concurrent database operations in parallel via `Promise.all` (projects breakdown, task breakdown, overdue alerts, notes tally, finances, and upcoming tasks).
   - **Admin RBAC & Cascade Governance**: Dual-middleware guard (`authenticate` + `authorize('admin')`), platform-wide metrics, user directory, role updating, project/task moderation, cascade deletions (purging all associated child records across collections), and admin self-lockout prevention.
-- **Documentation**: [WorkFlowX Master Readme](./workFlowX-5/README.md) & [Complete Route Making Flow Blueprint](./workFlowX-5/WORKFLOWX_ROUTES_MAKING_FLOW.md)
+- **Documentation**: [WorkFlowX Master Readme](./workFlowX-5/README.md), [Route Making Flow Blueprint](./workFlowX-5/WORKFLOWX_ROUTES_MAKING_FLOW.md), & [Postman Collection](./workFlowX-5/postman.collection.json)
 
 ---
 
@@ -117,7 +117,7 @@ The projects are structured sequentially, progressing from core token-based auth
     - `{ user: 1, product: 1 }` guarantees only one review per student per product.
   - **Verified Buyer Purchase Verification**: Enforces that only students with a completed order (`status: 'COMPLETED'`) containing the product can leave reviews.
   - **7 Production Aggregation Pipelines**: Multi-stage analytics including Total Sales, Best-Selling Products (`$unwind` + `$group` + `$sort`), Sales by Category (double `$lookup` join), Seller Revenue, User Spending, and Product Stock Breakdown.
-- **Documentation**: [CampusStore Readme](./campusStoreX/README.md) & [Complete Route Making Flow Blueprint](./campusStoreX/ROUTES_BLUEPRINT.md)
+- **Documentation**: [CampusStore Readme](./campusStoreX/README.md), [Route Flow Blueprint](./campusStoreX/ROUTES_BLUEPRINT.md), & [Postman Collection](./campusStoreX/postman.collection.json)
 
 ---
 

@@ -1,4 +1,4 @@
-import catchAsync from '../../utils/catchAsync.js';
+import {catchAsync} from '../../utils/catchAsync.js';
 import { addStockService, getInventoryByProductService, getProductStockHistoryService, } from './inventory.service.js';
 
 export const addStock = catchAsync(async (req, res) => {
