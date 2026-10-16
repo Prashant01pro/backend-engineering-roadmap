@@ -1,13 +1,16 @@
 import express from 'express'
 import { globalErrorHandler } from './middlewares/error.middleware.js'
+import { generalApiRateLimiter } from './middlewares/rateLimiter.middleware.js'
 import AppError from './utils/appError.js'
 import helmet from 'helmet'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import authRouter from './features/auth/auth.route.js'
 import userRouter from './features/users/user.route.js'
+import documentRouter from './features/documents/document.route.js'
 
 const app = express()
+
 
 app.use(helmet())
 
@@ -34,8 +37,10 @@ app.get('/health', (req, res) => {
     })
 })
 
+app.use('/api', generalApiRateLimiter)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/documents', documentRouter)
 
 // 404 Handler for undefined routes
 app.all('*path', (req, res, next) => {

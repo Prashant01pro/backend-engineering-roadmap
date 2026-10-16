@@ -2,16 +2,17 @@ import express from 'express'
 import { changePassword, forgotPassword, getActiveSessions, login, logout, myprofile, refresh, register, resetPassword, revokeAllSessions, revokeSession, updateProfile } from './auth.controller.js'
 import { authenticate } from './auth.middleware.js'
 import { changePasswordSchema, loginSchema, registerSchema, resetPasswordSchema, validate } from './auth.validation.js'
+import { loginRateLimiter, passwordResetRateLimiter, registerRateLimiter } from '../../middlewares/rateLimiter.middleware.js'
 
 const router=express.Router()
 
-router.post('/register',validate(registerSchema), register)
-router.post('/login',validate(loginSchema),login)
+router.post('/register',registerRateLimiter,validate(registerSchema), register)
+router.post('/login',loginRateLimiter,validate(loginSchema),login)
 router.post('/refresh',refresh)
 router.post('/logout',authenticate,logout)
 
-router.post('/forgot-password',forgotPassword)
-router.post('/reset-password/:token',validate(resetPasswordSchema),resetPassword)
+router.post('/forgot-password',passwordResetRateLimiter,forgotPassword)
+router.post('/reset-password/:token',passwordResetRateLimiter,validate(resetPasswordSchema),resetPassword)
 
 router.get('/profile',authenticate,myprofile)
 router.patch('/change-password',authenticate,validate(changePasswordSchema),changePassword)
