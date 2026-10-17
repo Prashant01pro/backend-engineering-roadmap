@@ -26,23 +26,35 @@ export const getDocumentMetadata = catchAsync(async (req, res) => {
 })
 
 export const downloadDocument = catchAsync(async (req, res) => {
-    const { filePath, originalName, mimeType } = await getDocumentDownloadService(
+    // const { filePath, originalName, mimeType } = await getDocumentDownloadService(
+    //     req.user._id,
+    //     req.params.documentId
+    // )
+
+    const downloadData = await getDocumentDownloadService(
         req.user._id,
         req.params.documentId
     )
+    // When Cloudinary is active, redirect browser directly to Cloudinary signed URL!
+    if (downloadData.isRedirect) {
+        return res.redirect(downloadData.url)
+    }
 
     // Security Headers for Download
-    res.setHeader('Content-Type', mimeType)
-    res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`)
+    res.setHeader('Content-Type', downloadData.mimeType)
+    // res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`)
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadData.originalName}"`)
     res.setHeader('X-Content-Type-Options', 'nosniff')
 
-    res.sendFile(filePath)
+    // res.sendFile(filePath)
+    downloadData.fileStream.pipe(res)
 })
 
 export const deleteDocument = catchAsync(async (req, res) => {
     await deleteDocumentService(req.user._id, req.params.documentId)
-    
+
     res.status(200).json({
         message: 'Document deleted successfully'
     })
 })
+

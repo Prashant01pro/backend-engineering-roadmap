@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser'
 import authRouter from './features/auth/auth.route.js'
 import userRouter from './features/users/user.route.js'
 import documentRouter from './features/documents/document.route.js'
+import shareRouter from './features/shares/share.route.js'
 
 const app = express()
 
@@ -41,6 +42,7 @@ app.use('/api', generalApiRateLimiter)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/documents', documentRouter)
+app.use('/api/v1/shares', shareRouter)
 
 // 404 Handler for undefined routes
 app.all('*path', (req, res, next) => {

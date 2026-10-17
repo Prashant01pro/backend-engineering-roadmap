@@ -1,11 +1,12 @@
-import fs from 'fs/promises'
+// import fs from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
 import Document from './document.model.js'
 import AppError from '../../utils/appError.js'
+import { storage } from '../storage/index.js'
 
-const DOCUMENT_DIR = path.resolve('uploads/documents')
-await fs.mkdir(DOCUMENT_DIR, { recursive: true })
+// const DOCUMENT_DIR = path.resolve('uploads/documents')
+// await fs.mkdir(DOCUMENT_DIR, { recursive: true })
 
 export const uploadDocumentService = async (userId, file) => {
     // sanitize original filename(remove directory traversal characters like ../)
@@ -13,10 +14,13 @@ export const uploadDocumentService = async (userId, file) => {
 
     // unpredictable storage key
     const storageKey = `doc-${userId}-${crypto.randomUUID()}.pdf`
-    const filePath = path.join(DOCUMENT_DIR, storageKey)
+    // const filePath = path.join(DOCUMENT_DIR, storageKey)
 
-    // write physical file to private disk 
-    await fs.writeFile(filePath, file.buffer)
+    // // write physical file to private disk 
+    // await fs.writeFile(filePath, file.buffer)
+
+    //Upload via unified storage adapter (Cloudinary or Local)
+    await storage.save(storageKey, file.buffer, 'application/pdf')
 
     try {
         // save metadata in mongodb
@@ -31,8 +35,9 @@ export const uploadDocumentService = async (userId, file) => {
         return document
 
     } catch (error) {
-        //orphan cleanup
-        await fs.unlink(filePath).catch(() => { })
+        //orphan cleanup : if mongobd fails delete from storage
+        // await fs.unlink(filePath).catch(() => { })
+        await storage.delete(storageKey)
         throw error
     }
 }
@@ -58,16 +63,27 @@ export const getDocumentDownloadService = async (userId, documentId) => {
         throw new AppError('Document not found', 404)
     }
 
-    const filePath = path.join(DOCUMENT_DIR, document.storageKey)
+    //  // const filePath = path.join(DOCUMENT_DIR, document.storageKey)
 
-    try {
-        await fs.access(filePath)
-    } catch (error) {
-        throw new AppError('Document physical file missing on server', 404)
+    // Check if cloud storage (Cloudinary) can generate a temporary signed URL
+    const signedUrl = await storage.generateSignedUrl(document.storageKey, 900)
+    if (signedUrl) {
+        // Direct redirect to Cloudinary expiring download URL
+        return { isRedirect: true, url: signedUrl }
     }
 
+    // Fallback: If Local Storage, get the readable file stream
+    const fileStream = await storage.getStream(document.storageKey)
+
+    // try {
+    //     await fs.access(filePath)
+    // } catch (error) {
+    //     throw new AppError('Document physical file missing on server', 404)
+    // }
+
     return {
-        filePath,
+        isRedirect: false,
+        fileStream,
         originalName: document.originalName,
         mimeType: document.mimeType
     }
@@ -81,7 +97,9 @@ export const deleteDocumentService = async (userId, documentId) => {
     }
 
     // Delete physical file
-    const filePath = path.join(DOCUMENT_DIR, document.storageKey)
-    await fs.unlink(filePath).catch(() => { })
+    // const filePath = path.join(DOCUMENT_DIR, document.storageKey)
+    // await fs.unlink(filePath).catch(() => { })
+
+    await storage.delete(document.storageKey)
     return document
 }
