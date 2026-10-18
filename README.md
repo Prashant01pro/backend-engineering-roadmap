@@ -18,7 +18,8 @@ The projects are structured sequentially, progressing from core token-based auth
     ├── session-Based-Authentication-3/   # Phase 3: Stateful Distributed Sessions with Redis
     ├── multi-Device-Auth-System-4/       # Phase 4: Multi-Device Hybrid Auth (JWT + Redis RTR)
     ├── workFlowX-5/                      # Phase 5: Complete Enterprise REST API Suite (Projects, Tasks, Notes, Finances, Analytics & Admin RBAC)
-    └── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
+    ├── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
+    └── secureVault-7/                    # Phase 7: Zero-Trust Secure File & Document Management Platform (Storage Adapter, Magic Bytes, Sharp, Signed URLs, Rate Limiting & Security Lab)
 ```
 
 ---
@@ -121,14 +122,33 @@ The projects are structured sequentially, progressing from core token-based auth
 
 ---
 
+### 7. [SecureVault — Secure File & Document Management Platform](./secureVault-7)
+> **Focus**: Zero-trust access control, binary magic-byte sniffing, image sanitization with Sharp, storage adapter architecture (Local & Cloudinary), temporary pre-signed URLs, distributed Redis rate limiting, and automated security exploit testing.
+
+- **Key Concepts**:
+  - **Zero-Trust Access Control & IDOR Prevention**: Authorization strictly enforced at the database query level (`{ _id: docId, owner: userId }`). Accessing another user's document returns `404 Not Found` to prevent resource enumeration.
+  - **Storage Adapter Architecture (Local & Cloudinary)**: Unified storage strategy (`save`, `delete`, `getStream`, `generateSignedUrl`) decoupling business logic from storage mediums.
+  - **Binary Magic-Byte Inspection (`file-type`)**: Detects and rejects disguised executables and malicious scripts regardless of client-provided `Content-Type` headers.
+  - **Image Sanitization via Sharp**: Automatically strips EXIF metadata (GPS, camera serials), resizes to 250x250, and transcodes user avatars into optimized WebP formats.
+  - **Temporary Signed URL File Sharing**: Capability-based sharing links using 64-character high-entropy tokens, SHA-256 database hashing, expiration timestamps, access counters, and append-only audit logging.
+  - **Custom Distributed Rate Limiting (Redis)**: Multi-tier sliding window and fixed window rate limiters using atomic Redis pipelines (`INCR` + `TTL`) with custom policies for login brute-force, password reset, uploads, and downloads (`429 Too Many Requests`).
+  - **Multi-Device Session Store & Immediate Invalidation**: Redis session store with `KEEPTTL` Refresh Token Rotation (RTR), breach kill-switch for token reuse, and live session verification on every request.
+  - **OWASP Security Testing Lab**: Automated Postman exploit suite verifying immunity against IDOR, NoSQL injection, stored XSS, MIME spoofing, brute-forcing, and email enumeration.
+  - **Production Observability & Resilience**: Correlation IDs (`X-Request-ID`), deep `/health` pinging of MongoDB and Redis, and graceful shutdown handling `SIGINT`/`SIGTERM`.
+- **Documentation**: [SecureVault Readme](./secureVault-7/README.md), [Route-by-Route Making Flow](./secureVault-7/SECUREVAULT_ROUTES_MAKING_FLOW.md), & [Postman Collection](./secureVault-7/postman.collection.json)
+
+---
+
 ## 🛠️ Tech Stack & Tools
 
 - **Runtime**: Node.js (v18+)
 - **Framework**: Express.js (v5) — ES Modules (`"type": "module"`)
 - **Primary Database**: MongoDB & Mongoose ODM
-- **Cache / Session Store**: Redis (via `ioredis`)
+- **Cache / Session Store / Rate Limiting**: Redis (via `ioredis`)
 - **Schema Validation**: Zod
-- **Security & Cryptography**: `bcrypt`, `jsonwebtoken`, Node native `crypto`
+- **Security & Cryptography**: `bcrypt`, `jsonwebtoken`, Node native `crypto`, `helmet`
+- **File Ingestion & Processing**: `multer`, `file-type`, `sharp`
+- **Cloud Object Storage**: `cloudinary`, `streamifier`
 - **Networking & Utilities**: `cookie-parser`, `nodemailer`, `dotenv`, `cors`
 
 ---

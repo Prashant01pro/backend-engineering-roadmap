@@ -40,3 +40,8 @@ coverage/
 *.tmp
 *.temp
 
+# Uploaded User Files (DO NOT COMMIT)
+uploads/
+*/uploads/
+*/*/uploads/
+

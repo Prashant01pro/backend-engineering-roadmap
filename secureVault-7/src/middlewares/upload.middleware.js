@@ -47,14 +47,19 @@ export const validatePdfMagicBytes = async (req, res, next) => {
         return next(new AppError('Please provide a PDF document to upload', 400))
     }
 
-    const detectedType = await fileTypeFromBuffer(req.file.buffer)
+    const allowedDocumentMimes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/zip'
+    ]
 
-    if (!detectedType || detectedType.mime !== 'application/pdf') {
-        return next(
-            new AppError('Invalid file format. Only genuine PDF documents are allowed.', 400)
-        )
+    const detectedType = await fileTypeFromBuffer(req.file.buffer)
+    
+    if (!detectedType || !allowedDocumentMimes.includes(detectedType.mime)) {
+        return next(new AppError('Invalid file format. Disallowed file type.', 400))
     }
 
-    req.file.verifiedMime=detectedType.mime
+    req.file.verifiedMime = detectedType.mime
     next()
 }

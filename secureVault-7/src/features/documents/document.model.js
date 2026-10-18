@@ -22,7 +22,10 @@ const documentSchema = new mongoose.Schema(
         mimeType: {
             type: String,
             required: true,
-            enum: ['application/pdf']
+            enum: ['application/pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/zip']
         },
         size: {
             type: Number,

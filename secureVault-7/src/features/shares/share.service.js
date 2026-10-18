@@ -1,12 +1,14 @@
+// import path from 'path'
+// import fs from 'fs/promises'
+
 import crypto from 'crypto'
-import path from 'path'
-import fs from 'fs/promises'
+import { storage } from '../storage/index.js'
 import Share from './share.model.js'
 import Document from '../documents/document.model.js'
 import AppError from '../../utils/appError.js'
 import { parseDeviceInfo } from '../../utils/deviceInfo.js'
 
-const DOCUMENT_DIR = path.resolve('uploads/documents')
+//const DOCUMENT_DIR = path.resolve('uploads/documents')
 
 export const createShareLinkService = async (userId, documentId, { expiresInHours = 24, maxAccessCount = null }) => {
     // verify the requesting user owns the document
@@ -73,16 +75,26 @@ export const accessSharedDocumentService = async (rawToken, req) => {
 
     await share.save({ validateBeforeSave: false })
 
-    // verify physical file exists and return stream metadata
-    const filePath = path.join(DOCUMENT_DIR, share.document.storageKey)
-    try {
-        await fs.access(filePath)
-    } catch {
-        throw new AppError('Physical document file not found', 404)
+    // // verify physical file exists and return stream metadata
+    // const filePath = path.join(DOCUMENT_DIR, share.document.storageKey)
+    // try {
+    //     await fs.access(filePath)
+    // } catch {
+    //     throw new AppError('Physical document file not found', 404)
+    // }
+
+    //Generate signed URL for Cloudinary or fallback to stream
+
+    const signedUrl = await storage.generateSignedUrl(share.document.storageKey, 900)
+    if (signedUrl) {
+        return { isRedirect: true, url: signedUrl }
     }
+    const fileStream = await storage.getStream(share.document.storageKey)
 
     return {
-        filePath,
+        isRedirect: false,
+        // filePath,
+        fileStream,
         originalName: share.document.originalName,
         mimeType: share.document.mimeType
     }

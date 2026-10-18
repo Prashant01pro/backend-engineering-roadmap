@@ -18,13 +18,21 @@ export const createShareLink = catchAsync(async (req, res) => {
 
 export const accessSharedDocument = catchAsync(async (req, res) => {
     const { shareToken } = req.params
-    const { filePath, originalName, mimeType } = await accessSharedDocumentService(shareToken, req)
-    
+    // const { filePath, originalName, mimeType } = await accessSharedDocumentService(shareToken, req)
+    const downloadData = await accessSharedDocumentService(shareToken, req)
+
+    // If Cloudinary generated a signed URL, redirect browser/client directly
+    if (downloadData.isRedirect) {
+        return res.redirect(downloadData.url)
+    }
+
     // Security headers for download
     res.setHeader('Content-Type', mimeType)
-    res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`)
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadData.originalName}"`)
     res.setHeader('X-Content-Type-Options', 'nosniff')
-    res.sendFile(filePath)
+    // res.sendFile(filePath)
+
+    downloadData.fileStream.pipe(res)
 })
 
 export const listDocumentShares = catchAsync(async (req, res) => {
