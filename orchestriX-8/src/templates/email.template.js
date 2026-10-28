@@ -25,7 +25,7 @@ const baseLayout = (content) => `
       ${content}
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} NexusFlow. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} OrchestriX. All rights reserved.</p>
       <p>If you did not request this email, you can safely ignore it.</p>
     </div>
   </div>
@@ -38,7 +38,7 @@ export const getVerificationEmailTemplate = ({ name, verificationUrl }) => {
     const html = baseLayout(`
       <h2>Verify Your Email Address</h2>
       <p>Hi <strong>${name}</strong>,</p>
-      <p>Welcome to NexusFlow. Please verify your email address to activate your account and start orchestrating workflows.</p>
+      <p>Welcome to OrchestriX. Please verify your email address to activate your account and start orchestrating workflows.</p>
       <div style="text-align: center;">
         <a href="${verificationUrl}" class="btn">Verify Email Address</a>
       </div>

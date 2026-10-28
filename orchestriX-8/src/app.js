@@ -12,6 +12,8 @@ import { globalErrorHandler } from './middlewares/error.middleware.js';
 import AppError from './utils/appError.js';
 import healthRoutes from './routes/health.route.js';
 import authRouter from './features/auth/auth.route.js'
+import jobRouter from './features/jobs/jobs.route.js';
+import notificationRouter from './features/notifications/notification.route.js';
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use(cookieParser());
 
 app.use('/health', healthRoutes);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/jobs', jobRouter);
+app.use('/api/v1/notifications', notificationRouter);
 
 // 404 Unhandled Route Handler
 app.use((req, res, next) => {

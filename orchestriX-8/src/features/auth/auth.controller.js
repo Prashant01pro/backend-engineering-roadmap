@@ -2,6 +2,9 @@ import AppError from "../../utils/appError.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 import { changePasswordService, forgotPasswordService, getActiveSessionsService, loginServices, logoutServices, refreshServices, registerService, resendVerificationService, resetPasswordService, revokeAllSessionsService, revokeDeviceSessionService, updateAvatarService, updateUserService, verifyEmailService } from "./auth.services.js";
 
+import { getCache, setCache, invalidateCache, CACHE_TTL } from '../../utils/cache.js';
+import User from './auth.model.js';
+
 const baseCookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -127,19 +130,46 @@ export const refresh = catchAsync(async (req, res, next) => {
 export const myprofile = catchAsync(async (req, res) => {
     // const user=await User.findById(req.user._id)
 
+    const userId = req.user._id.toString();
+    const cacheKey = `cache:user:profile:${userId}`
+
+    // check redis cache
+    const cachedProfile = await getCache(cacheKey);
+    if (cachedProfile) {
+        res.setHeader('X-Cache', 'HIT'); // inform client the response came from redis
+        return res.status(200).json({
+            status: 'success',
+            source: 'cache',
+            user: cachedProfile,
+        })
+    }
+
+    // On Cache MISS: Query MongoDB
+    const user = await User.findById(userId).select('-password');
+
+    //Populate Redis with 2-minute TTL
+    await setCache(cacheKey, user, CACHE_TTL.USER_PROFILE);
+
+    res.setHeader('X-Cache', 'MISS')
     res.status(200).json({
-        user: req.user
+        status: 'success',
+        source: 'database',
+        user: user
     })
 })
 
 export const updateProfile = catchAsync(async (req, res) => {
     const { bio } = req.body;
-
     const userId = req.user._id
 
     const user = await updateUserService(userId, bio)
 
+    //Explicit Cache Invalidation: Delete stale cached profile
+    await invalidateCache(`cache:user:profile:${userId}`);
+
     res.status(200).json({
+        status: 'success',
+        message: 'Profile updated successfully',
         user
     })
 
@@ -247,7 +277,11 @@ export const updateAvatar = catchAsync(async (req, res, next) => {
         return next(new AppError('Please select an image to upload', 400));
     }
 
-    const result = await updateAvatarService(req.user._id, req.file.buffer);
+    const userId = req.user._id.toString();
+    const result = await updateAvatarService(userId, req.file.buffer);
+
+    //Explicit Cache Invalidation: Delete stale cached avatar
+    await invalidateCache(`cache:user:profile:${userId}`);
 
     res.status(200).json({
         status: 'success',

@@ -44,16 +44,27 @@ export const connectRedis = async () => {
     }
 }
 
-export const disconnectRedis=async()=>{
-    try{
+export const disconnectRedis = async () => {
+    try {
         // quit waits for pending commands to finish before closing
         await redis.quit();
         logger.info('Redis connection closed gracefully')
-    }catch(error){
-        logger.error({err:error.message},"Error closing Redis connection")
+    } catch (error) {
+        logger.error({ err: error.message }, "Error closing Redis connection")
         redis.disconnect(); // force kill if quit fails
     }
 }
+
+// Add this export at the bottom of src/config/redis.js:
+
+//  Clean connection options for BullMQ Queues and Workers.
+//  BullMQ requires separate connection instances with maxRetriesPerRequest: null.
+export const bullRedisConnection=new Redis(env.REDIS_URI,{
+    maxRetriesPerRequest:null,
+    enableReadyCheck:false,
+    lazyConnect:false, // BullMQ needs immediate connection
+})
+
 
 
 // ioredis npm library for a Node.js application.

@@ -11,6 +11,9 @@ import { getVerificationEmailTemplate } from '../../templates/email.template.js'
 import { generateAccessToken, generateRefreshToken, hashToken } from '../../utils/token.js'
 import { createSession, deleteAllUserSessions, deleteSession, getSession, getUserSessions, updateSessionToken } from '../../stores/redis.sessions.store.js'
 
+import { addJobToQueue } from '../../queues/job.queue.js';
+import { JOB_TYPES } from '../jobs/jobs.model.js';
+
 export const registerService = async (body, req) => {
     const { name, email, password, bio } = body
 
@@ -64,11 +67,24 @@ export const registerService = async (body, req) => {
         verificationUrl
     })
 
-    await sendEmail({
-        to: user.email,
-        subject: 'Verify your Orchestrix Account',
-        html,
-        text,
+    // await sendEmail({
+    //     to: user.email,
+    //     subject: 'Verify your Orchestrix Account',
+    //     html,
+    //     text,
+    // });
+
+    // Instead of awaiting slow SMTP delivery:
+    // await sendEmail({ to: user.email, subject: 'Verify your NexusFlow Account', html, text });
+    // Enqueue verification email in BullMQ (takes < 2ms):
+    await addJobToQueue({
+        type: JOB_TYPES.EMAIL_VERIFICATION,
+        payload: {
+            name: user.name,
+            email: user.email,
+            verificationUrl,
+        },
+        ownerId: user._id,
     });
 
     const sessionData = {
@@ -473,26 +489,26 @@ export const resendVerificationService = async (email) => {
     }
 
     // Generate new token & 24h expiration
-    const rawVerificationToken=crypto.randomBytes(32).toString('hex');
-    const hashedVerificationToken=crypto
-    .createdHash('sha256')
-    .update(rawVerificationToken)
-    .digest('hex');
+    const rawVerificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = crypto
+        .createdHash('sha256')
+        .update(rawVerificationToken)
+        .digest('hex');
 
-    user.verificationToken=hashedVerificationToken;
-    user.verificationTokenExpires= Date.now()+24 * 60 * 60 * 1000;
+    user.verificationToken = hashedVerificationToken;
+    user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
     const verificationUrl = `${env.FRONTEND_URL}/verify-email/${rawVerificationToken}`;
 
-    const {text,html}=await getVerificationEmailTemplate({
-        name:user.name,
+    const { text, html } = await getVerificationEmailTemplate({
+        name: user.name,
         verificationUrl
     });
 
     await sendEmail({
-        to:user.email,
-        subject:'verify your OrchestriX Account',
+        to: user.email,
+        subject: 'verify your OrchestriX Account',
         html,
         text,
     })

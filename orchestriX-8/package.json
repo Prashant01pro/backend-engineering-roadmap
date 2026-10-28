@@ -1,7 +1,7 @@
 {
   "name": "orchestrix-8",
   "version": "1.0.0",
-  "description": "Traditional backend tutorials treat each feature as an isolated, linear request-response path:\r HTTP Request\r ⟶\r Controller\r ⟶\r Database\r ⟶\r HTTP Response\r HTTP Request⟶Controller⟶Database⟶HTTP Response",
+  "description": "OrchestriX is a mini workflow orchestration platform that combines background processing, transactional email, event-driven notifications, Redis caching, and distributed communication.",
   "license": "ISC",
   "author": "Prashant Kumar",
   "type": "module",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bullmq": "^6.4.2",
     "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

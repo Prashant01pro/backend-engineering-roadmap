@@ -4,6 +4,7 @@ import { logger } from './config/logger.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { verifyEmailConnection } from './config/email.js';
+import { startWorker, stopWorker } from './workers/job.worker.js';
 
 let server;
 let isShuttingDown = false;
@@ -15,6 +16,7 @@ const startServer = async () => {
         await connectDB();
         await connectRedis();
         await verifyEmailConnection() // verify SMTP credentials
+        startWorker(); // Start the background worker!
 
         // Start HTTP server
         server = app.listen(env.PORT, () => {
@@ -57,7 +59,8 @@ const gracefulShutdown = async (signal) => {
                 })
             })
         }
-
+        await stopWorker(); //Finish active jobs before killing process
+        
         // disconnect redis and mongodb
         await disconnectRedis()
         await disconnectDB()
