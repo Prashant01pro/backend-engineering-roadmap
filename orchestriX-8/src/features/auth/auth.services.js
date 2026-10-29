@@ -401,7 +401,13 @@ export const getActiveSessionsService = async (userId, currentSessionId) => {
         createdAt: s.createdAt,
         lastActive: s.lastActive,
         isCurrentDevice: s.sessionId === currentSessionId
-    }))
+    })).sort((a, b) => {
+            // Current active device is always pinned to the top
+            if (a.isCurrentDevice) return -1;
+            if (b.isCurrentDevice) return 1;
+            // Remaining devices sorted newest first
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
 
 }
 

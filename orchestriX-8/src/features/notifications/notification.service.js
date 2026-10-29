@@ -2,18 +2,25 @@ import Notification from './notification.model.js';
 import { logger } from '../../config/logger.js';
 import AppError from '../../utils/appError.js';
 import { tryCatch } from 'bullmq';
+import { eventBus, CHANNELS } from '../../services/eventBus.service.js';
 
 // Creates and persists a durable notification
 
-export const createNotification = async ({ userId, type, title, message, data = {} }) => {
+export const createNotification = async ({ userId, type, title, message, metadata = {} }) => {
     try {
         const notification = await Notification.create({
             userId,
             type,
             title,
             message,
-            data,
+            metadata,
         })
+
+        // Broadcast in real-time across all servers/instances via Redis Pub/Sub
+        await eventBus.publish(CHANNELS.USER_NOTIFICATIONS, {
+            userId: userId.toString(),
+            notification
+        });
 
         logger.info({
             notificationId: notification._id,

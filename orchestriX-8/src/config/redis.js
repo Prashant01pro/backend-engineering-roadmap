@@ -47,11 +47,20 @@ export const connectRedis = async () => {
 export const disconnectRedis = async () => {
     try {
         // quit waits for pending commands to finish before closing
-        await redis.quit();
-        logger.info('Redis connection closed gracefully')
+        // await redis.quit();
+        await Promise.allSettled([
+            redis.quit(),
+            bullRedisConnection.quit(),
+            redisPublisher.quit(),
+            redisSubscriber.quit(),
+        ]);
+        logger.info('All Redis connection closed gracefully')
     } catch (error) {
-        logger.error({ err: error.message }, "Error closing Redis connection")
+        logger.error({ err: error.message }, "Error closing Redis connections")
         redis.disconnect(); // force kill if quit fails
+        bullRedisConnection.disconnect();
+        redisPublisher.disconnect();
+        redisSubscriber.disconnect();
     }
 }
 
@@ -77,3 +86,21 @@ export const bullRedisConnection=new Redis(env.REDIS_URI,{
 // lazyConnect: true prevents ioredis from immediately attempting a network connection the moment the file is imported. This makes unit testing and orderly application boot predictable.
 // redis.quit() sends the Redis QUIT command and waits for in-flight commands to settle. redis.disconnect() brutally tears down the TCP socket, dropping commands mid-flight.
 
+// Dedicated Redis client for Publishing events.
+export const redisPublisher=new Redis(env.REDIS_URI,{
+    maxRetriesPerRequest:3,
+    enableReadyCheck:true,
+    lazyConnect:false,
+})
+
+//Dedicated Redis client for Subscribing to channels.
+//Note: A client in subscription mode cannot issue regular Redis commands.
+
+export const redisSubscriber = new Redis(env.REDIS_URI, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: true,
+    lazyConnect: false,
+});
+
+redisPublisher.on('error',(err)=>logger.error({err},"Redis Publisher Error"))
+redisSubscriber.on('error',(err)=>logger.error({err},"Redis Subscriber Error"))

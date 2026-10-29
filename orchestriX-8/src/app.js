@@ -14,6 +14,7 @@ import healthRoutes from './routes/health.route.js';
 import authRouter from './features/auth/auth.route.js'
 import jobRouter from './features/jobs/jobs.route.js';
 import notificationRouter from './features/notifications/notification.route.js';
+import { generalApiRateLimiter } from './middlewares/rateLimiter.middleware.js';
 
 const app = express();
 
@@ -45,6 +46,9 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' })); // Guard against large payload DoS
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
+
+// Apply global rate limiter to all API endpoints
+app.use('/api/v1',generalApiRateLimiter)
 
 
 app.use('/health', healthRoutes);

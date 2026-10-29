@@ -5,6 +5,8 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { verifyEmailConnection } from './config/email.js';
 import { startWorker, stopWorker } from './workers/job.worker.js';
+import { eventBus, CHANNELS } from './services/eventBus.service.js';
+import { startReconciliationCron, stopReconciliationCron } from './services/reconciliation.service.js';
 
 let server;
 let isShuttingDown = false;
@@ -15,8 +17,10 @@ const startServer = async () => {
         logger.info('Initializing services...');
         await connectDB();
         await connectRedis();
+        eventBus.initialize()
         await verifyEmailConnection() // verify SMTP credentials
         startWorker(); // Start the background worker!
+        startReconciliationCron(60000); // Scans every 60 seconds
 
         // Start HTTP server
         server = app.listen(env.PORT, () => {
@@ -31,6 +35,11 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
+// Listen to notification events (this will bridge to WebSockets):
+eventBus.subscribe(CHANNELS.USER_NOTIFICATIONS, ({ userId, notification }) => {
+    logger.info({ userId, title: notification.title }, 'Real-time notification event received via Redis Pub/Sub');
+});
 
 // Graceful Shutdown Handler
 const gracefulShutdown = async (signal) => {
@@ -59,8 +68,9 @@ const gracefulShutdown = async (signal) => {
                 })
             })
         }
+        stopReconciliationCron();
         await stopWorker(); //Finish active jobs before killing process
-        
+
         // disconnect redis and mongodb
         await disconnectRedis()
         await disconnectDB()
@@ -84,7 +94,7 @@ process.on('uncaughtException', (err) => {
 });
 
 process.on('unhandledRejection', (reason) => {
-    logger.fatal({ reason }, 'UNHANDLED REJECTION! Initiating emergency shutdown...');
+    logger.fatal({ err: reason }, 'UNHANDLED REJECTION! Initiating emergency shutdown...');
     gracefulShutdown('unhandledRejection');
 });
 

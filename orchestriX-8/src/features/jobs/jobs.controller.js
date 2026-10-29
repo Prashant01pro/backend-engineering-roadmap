@@ -261,13 +261,94 @@ export const getDashboardStats = catchAsync(async (req, res) => {
         generatedAt: new Date().toISOString(),
     };
 
-     // Cache in Redis for 30 seconds
+    // Cache in Redis for 30 seconds
     await setCache(cacheKey, stats, CACHE_TTL.DASHBOARD_STATS);
     res.setHeader('X-Cache', 'MISS');
-    
+
     res.status(200).json({
         status: 'success',
         source: 'database',
         data: stats,
     });
 })
+
+//Inspect all failed / dead-letter jobs for the current user
+
+export const getFailedJobs = catchAsync(async (req, res) => {
+    const { limit = 20, page = 1 } = req.query;
+    const filter = {
+        ownerId: req.user._id,
+        status: JOB_STATUS.FAILED,
+    };
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [failedJobs, total] = await Promise.all([
+        Job.find(filter)
+            .sort({ updatedAt: -1 })
+            .skip(skip)
+            .limit(Number(limit)),
+        Job.countDocuments(filter)
+    ]);
+
+    res.status(200).json({
+        status:'success',
+        results:failedJobs.length,
+        total,
+        page:Number(page),
+        pages:Math.ceil(total/Number(limit)),
+        data:failedJobs
+    })
+})
+
+//Bulk retries all failed jobs by re-enqueueing them into BullMQ
+
+export const retryAllFailedJobs = catchAsync(async (req, res) => {
+    const failedJobs = await Job.find({
+        ownerId: req.user._id,
+        status: JOB_STATUS.FAILED,
+    });
+
+    if (failedJobs.length === 0) {
+        return res.status(200).json({
+            status: 'success',
+            message: 'No failed jobs found to retry',
+            retriedCount: 0,
+        });
+    }
+
+    const retriedJobIds = [];
+
+    for (const job of failedJobs) {
+        // Re-enqueue into BullMQ with reset attempts
+        const bullJob = await jobQueue.add(
+            job.type,
+            {
+                mongoJobId: job._id.toString(),
+                ownerId: job.ownerId.toString(),
+                type: job.type,
+                payload: job.payload,
+            },
+            {
+                attempts: 3,
+                priority: job.priority === 'HIGH' ? 1 : 2,
+            }
+        );
+
+        // Reset job state in MongoDB
+        job.status = JOB_STATUS.QUEUED;
+        job.bullJobId = bullJob.id;
+        job.progress = 0;
+        job.currentStage = 'Re-queued via Bulk Retry';
+        job.error = undefined;
+        job.errorSummary = undefined;
+        
+        await job.save();
+        retriedJobIds.push(job._id);
+    }
+    res.status(200).json({
+        status: 'success',
+        message: `Successfully re-enqueued ${retriedJobIds.length} failed jobs`,
+        retriedCount: retriedJobIds.length,
+        jobIds: retriedJobIds,
+    });
+});

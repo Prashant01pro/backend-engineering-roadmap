@@ -50,6 +50,7 @@ const jobSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.Mixed,
             default: null,
         },
+        // Live progress tracking
         progress: {
             type: Number,
             default: 0,
@@ -80,6 +81,15 @@ const jobSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        currentStage: {
+            type: String,
+            default: 'Enqueued',
+        },
+        executionTimeMs: {
+            type: Number,
+            default: 0,
+        },
+        //// ... remaining fields (payload, result, idempotencyKey, etc.) ...
     },
     {
         timestamps: true

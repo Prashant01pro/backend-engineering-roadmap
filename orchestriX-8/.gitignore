@@ -45,6 +45,6 @@ uploads/
 */uploads/
 */*/uploads/
 
-# Temporary ignore documentation
+# Generated Job Artifacts
+artifacts/
 docs/
-/README.md
