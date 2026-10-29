@@ -138,14 +138,32 @@ The projects are structured sequentially, progressing from core token-based auth
 - **Documentation**: [SecureVault Readme](./secureVault-7/README.md), [Route-by-Route Making Flow](./secureVault-7/SECUREVAULT_ROUTES_MAKING_FLOW.md), & [Postman Collection](./secureVault-7/postman.collection.json)
 
 ---
+### 8. [OrchestriX — Distributed Job Orchestration, Real-Time Event Streaming & Hybrid Auth Engine](./orchestriX-8)
+> **Focus**: Production-grade distributed systems design: Asynchronous worker processing with BullMQ, true sliding-window rate limiting via Redis Sorted Sets (`ZSET`), multi-instance event broadcasting via Redis Pub/Sub, live Server-Sent Events (SSE) progress streaming, dual-write self-healing reconciliation cron, and Dead-Letter Queue (DLQ) bulk recovery.
+
+- **Key Concepts**:
+  - **Asynchronous Worker Fleet (BullMQ)**: Decouples long-running report calculations, data exports, and email dispatches from the HTTP request cycle (`concurrency: 5`, exponential backoff `2s -> 4s -> 8s`, maximum 3 attempts).
+  - **Live Multi-Stage Progress Streaming (SSE)**: Native HTTP streaming (`text/event-stream`) via `GET /api/v1/notifications/stream`. Workers emit live progress milestones (`25% -> 50% -> 75% -> 100%`) through Redis Pub/Sub directly to the user's screen in `< 5ms`.
+  - **Sliding-Window Rate Limiting (Redis ZSET)**: Eliminates boundary-burst vulnerabilities inherent in naive fixed-window limiters by maintaining exact timestamps in Redis Sorted Sets with atomic multi-exec pipelines (`zremrangebyscore`, `zadd`, `zcard`, `expire`).
+  - **Dual-Write Problem & Self-Healing Reconciliation Engine**: Solves cross-database atomicity failures between MongoDB and Redis. A background cron worker periodically scans for orphaned "zombie" jobs (`QUEUED` for > 60s without `bullJobId`) and re-enqueues them automatically, guaranteeing at-least-once delivery.
+  - **Dead-Letter Queue (DLQ) & One-Click Bulk Recovery**: Dedicated inspection endpoints (`GET /api/v1/jobs/failed`) and bulk retry engine (`POST /api/v1/jobs/failed/retry-all`) allowing instant re-enqueueing of all exhausted jobs once external services recover.
+  - **Hybrid Authentication & Deterministic Device Management**: Short-lived JWT `accessToken` in `httpOnly` cookie + stateful Redis `sessionId` store with Refresh Token Rotation (RTR), reuse breach detection kill-switch, and deterministic device dashboard sorting (`isCurrentDevice: true` pinned to index 0).
+  - **High-Throughput Cache-Aside & Write Invalidation**: Read caching (`cache:user:profile:${userId}` and `cache:jobs:stats:${userId}`) returning in `< 2ms` with `X-Cache: HIT/MISS` headers and explicit invalidation hooks on profile/avatar updates.
+  - **Ephemeral Container Media Storage**: In-memory buffer ingestion (`multer.memoryStorage()`) streamed directly to Cloudinary CDN via `streamifier` with smart face cropping (`gravity: 'face'`), ensuring full compatibility with serverless/containerized hosts (Railway, Render, Fly.io).
+- **Documentation**: [OrchestriX Master Readme](./orchestriX-8/README.md) & [Routes Architecture & Making Flow Blueprint](./orchestriX-8/docs/ROUTES_ARCHITECTURE_FLOW.md)
+
+---
 
 ## 🛠️ Tech Stack & Tools
 
-- **Runtime**: Node.js (v18+)
+- **Runtime**: Node.js (v18+ / v20+ / v22+)
 - **Framework**: Express.js (v5) — ES Modules (`"type": "module"`)
 - **Primary Database**: MongoDB & Mongoose ODM
 - **Cache / Session Store / Rate Limiting**: Redis (via `ioredis`)
-- **Schema Validation**: Zod
+- **Queue Engine & Background Workers**: BullMQ (v5)
+- **Pub/Sub & Real-Time Streaming**: Redis Pub/Sub, Server-Sent Events (SSE)
+- **Logging & Tracing**: Pino, Pino-HTTP, `X-Request-ID` correlation IDs
+- **Schema Validation**: Zod (v4)
 - **Security & Cryptography**: `bcrypt`, `jsonwebtoken`, Node native `crypto`, `helmet`
 - **File Ingestion & Processing**: `multer`, `file-type`, `sharp`
 - **Cloud Object Storage**: `cloudinary`, `streamifier`
