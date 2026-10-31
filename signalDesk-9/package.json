@@ -1,0 +1,43 @@
+{
+  "name": "signaldesk-9",
+  "version": "1.0.0",
+  "description": "SignalDesk is a hybrid real-time event-driven and high-performance analytical system. It solves real backend problems: state reconciliation, optimistic concurrency control, multi-tab presence tracking, cache invalidation, media processing, and query performance over high-cardinality datasets.",
+  "license": "ISC",
+  "author": "Prashant Kumar",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bullmq": "^6.4.2",
+    "cloudinary": "^2.11.0",
+    "compression": "^1.8.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "file-type": "^22.3.0",
+    "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.2",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.1.0",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "sharp": "^0.35.5",
+    "socket.io": "^4.8.4",
+    "streamifier": "^0.1.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "pino-pretty": "^13.2.0",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.5"
+  }
+}

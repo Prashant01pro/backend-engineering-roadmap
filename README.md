@@ -20,6 +20,7 @@ The projects are structured sequentially, progressing from core token-based auth
     ├── workFlowX-5/                      # Phase 5: Complete Enterprise REST API Suite (Projects, Tasks, Notes, Finances, Analytics & Admin RBAC)
     ├── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
     └── secureVault-7/                    # Phase 7: Zero-Trust Secure File & Document Management Platform (Storage Adapter, Magic Bytes, Sharp, Signed URLs, Rate Limiting & Security Lab)
+    └── orchestriX-8/                     # Phase 8: Distributed Job Orchestration, Real-Time Event Streaming & Hybrid Auth Engine (BullMQ, Redis Pub/Sub, SSE, Dual-Write Reconciliation, DLQ)
 ```
 
 ---
