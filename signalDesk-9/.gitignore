@@ -48,4 +48,6 @@ uploads/
 # Generated Job Artifacts
 artifacts/
 docs/
-README.md
+README1.md
+postman.collection.js
+postman.collection.json

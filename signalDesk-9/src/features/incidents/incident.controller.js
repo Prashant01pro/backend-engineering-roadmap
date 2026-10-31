@@ -12,7 +12,7 @@ export const createIncident = catchAsync(async (req, res) => {
 });
 
 export const listIncidents = catchAsync(async (req, res) => {
-    const result = await listIncidentsService(req.query);
+    const result = await listIncidentsService(req.validatedQuery || req.query);
 
     res.status(200).json({
         status: 'success',

@@ -1,7 +1,7 @@
 import Team from './team.model.js';
 import User from '../auth/auth.model.js';
 import AppError from '../../utils/appError.js';
-import { templateLiteral } from 'zod';
+import { sendNotificationService } from '../notifications/notification.service.js';
 
 // Utility helper to create a URL-safe slug from team name
 const generateSlug = (name) => {
@@ -95,7 +95,18 @@ export const addMemberService = async (teamId, { userId, role }, requesterId) =>
 
     // Add new member
     team.members.push({ user: userId, role });
-    await team.save({validateBeforeSave:false});
+    await team.save({ validateBeforeSave: false });
+
+    await sendNotificationService({
+        recipient: userId,
+        actor: requesterId,
+        type: 'TEAM_INVITE',
+        resourceId: team._id,
+        resourceType: 'Team',
+        title: `Team Invitation: ${team.name}`,
+        message: `You were added to the investigation team "${team.name}" as an ${role}`
+    });
+
     return team.populate('members.user', 'name email avatar');
 };
 
@@ -131,7 +142,7 @@ export const removeMemberService = async (teamId, targetUserId, requesterId) => 
 
     // Pull member
     team.members = team.members.filter((m) => m.user.toString() !== targetUserId.toString());
-    await team.save({validateBeforeSave:false});
+    await team.save({ validateBeforeSave: false });
 
     return team;
 };

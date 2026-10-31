@@ -2,6 +2,8 @@ import Incident, { INCIDENT_STATUS } from './incident.model.js';
 import Team from '../teams/team.model.js';
 import User from '../auth/auth.model.js';
 import AppError from '../../utils/appError.js';
+import { sendNotificationService } from '../notifications/notification.service.js';
+import { invalidateAnalyticsCache } from '../analytics/analytics.service.js';
 
 // Valid status transitions map (FSM)
 const VALID_TRANSITIONS = {
@@ -56,6 +58,8 @@ export const createIncidentService = async (data, creatorId) => {
         ]
     });
 
+    await invalidateAnalyticsCache(incident.assignedTeam);
+
     return incident;
 }
 
@@ -92,6 +96,8 @@ export const updateIncidentStatusService = async (incidentId, { status: nextStat
 
     // Apply status update
     incident.status = nextStatus;
+
+    await invalidateAnalyticsCache(incident.assignedTeam);
 
     if (nextStatus === INCIDENT_STATUS.RESOLVED) {
         incident.resolvedAt = new Date();
@@ -135,6 +141,17 @@ export const assignIncidentService = async (incidentId, assigneeId, requesterId)
     });
 
     await incident.save({ validateBeforeSave: false });
+
+    await sendNotificationService({
+        recipient: assigneeId,
+        actor: requesterId,
+        type: 'INCIDENT_ASSIGNED',
+        resourceId: incident._id,
+        resourceType: 'Incident',
+        title: `Assigned: ${incident.incidentNumber}`,
+        message: `You were assigned as lead investigator for incident: "${incident.title}"`
+    });
+
     return incident.populate('assignedTo', 'name email avatar');
 };
 

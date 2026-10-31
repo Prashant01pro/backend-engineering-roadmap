@@ -1,5 +1,5 @@
-import { z } from "zod"
-import AppError from "../../utils/appError.js"
+import { z } from "zod";
+import AppError from "../../utils/appError.js";
 import { INCIDENT_SEVERITY, INCIDENT_STATUS } from './incident.model.js';
 
 const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ID format');
@@ -18,8 +18,7 @@ export const createIncidentSchema = z.object({
     severity: z.enum(Object.values(INCIDENT_SEVERITY)).default(INCIDENT_SEVERITY.MEDIUM),
     assignedTeam: objectIdSchema,
     assignedTo: objectIdSchema.optional()
-})
-
+});
 
 export const updateIncidentStatusSchema = z.object({
     status: z.enum(Object.values(INCIDENT_STATUS), {
@@ -64,6 +63,12 @@ export const validateQuery = (schema) => (req, res, next) => {
         const errorMessage = result.error.issues.map((i) => i.message).join(', ');
         return next(new AppError(errorMessage, 400));
     }
-    req.query = result.data;
+    // Express 4/5 defines req.query with a getter on IncomingMessage without a setter.
+    // Instead of replacing req.query reference, mutate existing properties in-place and attach validatedQuery.
+    for (const key of Object.keys(req.query)) {
+        delete req.query[key];
+    }
+    Object.assign(req.query, result.data);
+    req.validatedQuery = result.data;
     next();
 };

@@ -278,7 +278,7 @@ export const updateAvatar = catchAsync(async (req, res, next) => {
     }
 
     const userId = req.user._id.toString();
-    const result = await updateAvatarService(userId, req.file.buffer);
+    const result = await updateAvatarService(userId, req.file);
 
     //Explicit Cache Invalidation: Delete stale cached avatar
     await invalidateCache(`cache:user:profile:${userId}`);

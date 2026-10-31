@@ -6,10 +6,12 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { verifyEmailConnection } from './config/email.js';
 import { initSocketServer } from './sockets/socket.server.js';
+import { initHocuspocusServer } from './collaboration/hocuspocus.server.js';
 
 let server;
 let io;
 let isShuttingDown = false;
+let hocuspocusInstance;
 
 const startServer = async () => {
     try {
@@ -24,6 +26,9 @@ const startServer = async () => {
 
         //Attach Socket.IO to HTTP server
         io = initSocketServer(server);
+
+        //Launch Hocuspocus Server (Port 1234)
+        hocuspocusInstance = initHocuspocusServer();
 
         // Start HTTP server
         server.listen(env.PORT, () => {
@@ -60,6 +65,11 @@ const gracefulShutdown = async (signal) => {
         if (io) {
             await new Promise((resolve) => io.close(resolve));
             logger.info('Socket.IO connections closed cleanly');
+        }
+
+        if (hocuspocusInstance) {
+            await hocuspocusInstance.destroy();
+            logger.info('Hocuspocus collaboration server closed cleanly');
         }
 
         // stop accepting new HTTP requests

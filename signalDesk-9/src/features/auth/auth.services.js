@@ -414,10 +414,14 @@ export const revokeAllSessionsService = async (userId) => {
     await deleteAllUserSessions(userId)
 }
 
-export const updateAvatarService = async (userId, fileBuffer) => {
-    const user = await User.findById(userId)
+export const updateAvatarService = async (userId, fileInput) => {
+    const user = await User.findById(userId);
 
     if (!user) throw new AppError('User not found', 404);
+
+    const buffer = Buffer.isBuffer(fileInput) ? fileInput : fileInput.buffer;
+    const mimeType = fileInput.verifiedMime || fileInput.mimetype || 'image/jpeg';
+    const size = fileInput.size || buffer.length;
 
     // Delete old avatar from Cloudinary if one exists
     if (user.avatar?.publicId) {
@@ -425,11 +429,18 @@ export const updateAvatarService = async (userId, fileBuffer) => {
     }
 
     // upload new avatar to cloudinary
-    const { url, publicId } = await uploadToCloudinary(fileBuffer, 'orchestrix/avatars');
-    user.avatar = { url, publicId }
-    await user.save({ validateBeforeSave: false })
+    const { url, publicId } = await uploadToCloudinary(buffer, 'signalDesk/avatars');
+    user.avatar = {
+        key: publicId,
+        url,
+        publicId,
+        mimeType,
+        size,
+        updatedAt: new Date()
+    };
+    await user.save({ validateBeforeSave: false });
 
-    return { avatarUrl: url }
+    return { avatarUrl: url, avatar: user.avatar };
 }
 
 // verify email using the token from the link

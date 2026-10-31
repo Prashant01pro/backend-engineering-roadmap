@@ -30,7 +30,7 @@ export const getOrCreateIncidentConversation = async (incidentId, userId) => {
 }
 
 // get or create a 1 to 1 direct conversation between two users
-export const getOrCreateDirectConversion = async (userAId, userBId) => {
+export const getOrCreateDirectConversation = async (userAId, userBId) => {
     if (userAId.toString() === userBId.toString()) {
         throw new AppError('Cannot start a direct conversation with yourself', 400)
     }
@@ -56,7 +56,7 @@ export const sendMessageService = async ({ conversationId, content, messageType,
     if (!conversation) throw new AppError('Conversation not found', 404);
 
     // Verify sender is an authorized participant
-    const isParticipant = conversation.participants.some((p) = p.toString() === senderId.toString())
+    const isParticipant = conversation.participants.some((p) => p.toString() === senderId.toString())
     if (!isParticipant) {
         throw new AppError('You are not a participant in this conversation', 403);
     }
@@ -113,7 +113,7 @@ export const getConversationMessagesService = async (conversationId, { before, l
         .limit(Number(limit))
         .populate('sender', 'name email avatar')
         .populate('evidence', 'thumbnailUrl displayUrl caption');
-        
+
     // Return chronological order to client
     return messages.reverse();
 };

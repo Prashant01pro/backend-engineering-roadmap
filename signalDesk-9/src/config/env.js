@@ -28,6 +28,9 @@ const envSchema = z.object({
     EMAIL_PASSWORD: z.string().min(1, 'EMAIL_PASSWORD is required'),
     EMAIL_FROM: z.string().default('OrchestriX <no-reply@orchestrix.dev>'),
 
+    HOCUSPOCUS_PORT: z.coerce.number().default(1234),
+    SEED_COUNT: z.coerce.number().default(1000),
+
     // Client
     FRONTEND_URL: z.string().default('http://localhost:5173'),
 })
