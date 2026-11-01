@@ -19,8 +19,9 @@ The projects are structured sequentially, progressing from core token-based auth
     ├── multi-Device-Auth-System-4/       # Phase 4: Multi-Device Hybrid Auth (JWT + Redis RTR)
     ├── workFlowX-5/                      # Phase 5: Complete Enterprise REST API Suite (Projects, Tasks, Notes, Finances, Analytics & Admin RBAC)
     ├── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
-    └── secureVault-7/                    # Phase 7: Zero-Trust Secure File & Document Management Platform (Storage Adapter, Magic Bytes, Sharp, Signed URLs, Rate Limiting & Security Lab)
-    └── orchestriX-8/                     # Phase 8: Distributed Job Orchestration, Real-Time Event Streaming & Hybrid Auth Engine (BullMQ, Redis Pub/Sub, SSE, Dual-Write Reconciliation, DLQ)
+    ├── secureVault-7/                    # Phase 7: Zero-Trust Secure File & Document Management Platform (Storage Adapter, Magic Bytes, Sharp, Signed URLs, Rate Limiting & Security Lab)
+    ├── orchestriX-8/                     # Phase 8: Distributed Job Orchestration, Real-Time Event Streaming & Hybrid Auth Engine (BullMQ, Redis Pub/Sub, SSE, Dual-Write Reconciliation, DLQ)
+    └── signalDesk-9/                     # Phase 9: Real-Time Incident Intelligence & Collaboration Platform (CRDTs, Yjs, Hocuspocus, Socket.IO, Multi-Tab Presence, Sharp, Keyset Pagination, Redis Cache-Aside)
 ```
 
 ---
@@ -152,6 +153,23 @@ The projects are structured sequentially, progressing from core token-based auth
   - **High-Throughput Cache-Aside & Write Invalidation**: Read caching (`cache:user:profile:${userId}` and `cache:jobs:stats:${userId}`) returning in `< 2ms` with `X-Cache: HIT/MISS` headers and explicit invalidation hooks on profile/avatar updates.
   - **Ephemeral Container Media Storage**: In-memory buffer ingestion (`multer.memoryStorage()`) streamed directly to Cloudinary CDN via `streamifier` with smart face cropping (`gravity: 'face'`), ensuring full compatibility with serverless/containerized hosts (Railway, Render, Fly.io).
 - **Documentation**: [OrchestriX Master Readme](./orchestriX-8/README.md) & [Routes Architecture & Making Flow Blueprint](./orchestriX-8/docs/ROUTES_ARCHITECTURE_FLOW.md)
+
+---
+
+### 9. [SignalDesk — Real-Time Incident Intelligence & Collaboration Platform](./signalDesk-9)
+> **Focus**: Enterprise real-time incident war room, conflict-free document collaboration via CRDTs (Yjs + Hocuspocus), multi-tab presence tracking, persist-then-broadcast incident chat, Sharp image optimization pipeline, Redis cache-aside with deterministic invalidation, and large-dataset search with keyset pagination.
+
+- **Key Concepts**:
+  - **Conflict-Free Real-Time Collaboration (CRDTs & Hocuspocus)**: Replaces fragile revision-locking OCC with commutative and idempotent CRDTs (`yjs` + `@hocuspocus/server` on port 1234). Enables 10+ concurrent investigators to simultaneously edit different sections of an incident document with automatic state convergence, Yjs Awareness live cursors, and binary BSON persistence in MongoDB.
+  - **Multi-Tab Presence & Connection Registry (Redis Sets)**: Solves the multi-tab disconnect bug by tracking connection socket IDs in Redis sets (`presence:user_sockets:<userId>`). Users transition to `offline` and update durable `lastSeen` in MongoDB only when active socket count reaches exactly zero.
+  - **Persist-Then-Broadcast Chat Architecture (Socket.IO)**: Eliminates message loss during network drops. Chat submissions are validated and committed to MongoDB first, confirmed to sender via Socket.IO Acknowledgement (`ack`), and then broadcasted to authorized rooms (`incident:<id>` or `dm:<userA>:<userB>`) with keyset/cursor pagination.
+  - **Ephemeral Typing Indicators with Auto-Cleanup**: Scoped to incident rooms with server-side timeouts to prevent stuck typing indicators on unexpected disconnections.
+  - **Durable Notification Subsystem**: Event-driven decoupled notification pipeline. Persists notifications in MongoDB before emitting to private user rooms (`user:<userId>`), guaranteeing delivery even if the recipient is offline.
+  - **Evidence Ingestion & Sharp Optimization Pipeline**: Validates binary magic-bytes via `file-type` to defeat polyglot file attacks. Concurrently generates 200x200 thumbnails and 1600px optimized WebP display variants while stripping privacy-invasive EXIF/GPS metadata before Cloudinary streaming.
+  - **Strict Finite State Machine (FSM) Incident Lifecycle**: Enforces formal incident lifecycles (`REPORTED` -> `ACKNOWLEDGED` -> `INVESTIGATING` -> `RESOLVED` -> `CLOSED`), preventing illegal state jumps and maintaining immutable audit timelines.
+  - **High-Performance Analytics Dashboard (Redis Cache-Aside)**: Computes multi-metric MTTR (Mean Time To Resolution) and status/severity distributions in a single MongoDB `$facet` aggregation pass, cached in Redis with deterministic invalidation on incident status updates.
+  - **Large Dataset Search & Keyset / Cursor Pagination**: Generates 1,000 to 100,000+ realistic incidents via a batched deterministic seeder. Demonstrates O(1) cursor pagination (`$lt: cursor`) outperforming traditional offset pagination (`skip`), verified with MongoDB `.explain('executionStats')` profiling (`IXSCAN` vs `COLLSCAN`).
+- **Documentation**: [SignalDesk Master Readme](./signalDesk-9/README.md) & [Route Architecture & Making Flow Guide](./signalDesk-9/ROUTE_ARCHITECTURE_GUIDE.md)
 
 ---
 
