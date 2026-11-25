@@ -18,7 +18,7 @@ async function runMigrations() {
 
         console.log('Schema migration completed successfully: all 10 tables created.');
     } catch (error) {
-        console.error('❌ Migration failed:', error.message);
+        console.error(' Migration failed:', error.message);
         process.exit(1);
     } finally {
         // Release the client and drain the pool so the CLI script exits cleanly

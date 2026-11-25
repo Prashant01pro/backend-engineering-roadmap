@@ -1,14 +1,14 @@
 import pg from 'pg';
-import 'dotenv/config';
+import { env } from './env.js';
 
 const { Pool } = pg;
 
 export const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'seatflow',
+    host: env.db.host,
+    port: env.db.port,
+    user: env.db.user,
+    password: env.db.password,
+    database: env.db.name,
 
     // Connection Pool tuning:
     max: 20,                  // Maximum 20 simultaneous client connections
@@ -29,7 +29,6 @@ pool.on('error', (err) => {
 export const query = (text, params) => pool.query(text, params);
 
 //Handles client acquisition, BEGIN, COMMIT, ROLLBACK, and guaranteed release.
-
 export const withTransaction = async (callback) => {
     const client = await pool.connect();
     try {
