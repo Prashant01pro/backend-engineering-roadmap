@@ -4,6 +4,8 @@ import { pool } from './config/db.js';
 import { globalErrorMiddleware } from './middleware/error.middleware.js';
 import authRouter from './features/auth/auth.route.js'
 import eventRouter from './features/events/event.route.js';
+import bookingRouter from './features/bookings/bookings.route.js';
+import paymentRouter from './features/payments/payments.route.js';
 
 const app = express();
      
@@ -31,7 +33,8 @@ app.get('/health', async (req, res) => {
 
 app.use('/api/v1/auth',authRouter);
 app.use('/api/v1/events', eventRouter);
-
+app.use('/api/v1/bookings', bookingRouter);
+app.use('/api/v1/payments', paymentRouter);
 
 app.use((req, res) => {
   res.status(404).json({
