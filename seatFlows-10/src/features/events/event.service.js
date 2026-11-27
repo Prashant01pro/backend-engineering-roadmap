@@ -1,7 +1,8 @@
 import * as eventRepo from './event.repository.js';
 import AppError from '../../utils/appError.js';
 import { withTransaction } from '../../config/db.js';
-
+import { decodeCursor, formatPaginationResponse } from '../../utils/pagination.js';
+import { getCache, setCache, deleteCache } from '../../config/redis.js';
 
 export const createVenue = async (venueData) => {
     const { name, address, city, postalCode, capacity } = venueData;
@@ -100,7 +101,12 @@ export const createTicketType = async (userId, eventId, ticketData) => {
         throw new AppError('Cannot add ticket tiers to an already published or cancelled event', 400);
     }
 
-    return await eventRepo.createTicketType({ eventId, name, price, description });
+    const ticketType = await eventRepo.createTicketType({ eventId, name, price, description });
+
+    await deleteCache(`event:${eventId}`);
+
+    return ticketType;
+
 };
 
 //PUBLISHING TRANSACTION 
@@ -124,10 +130,11 @@ export const publishEvent = async (userId, eventId) => {
         throw new AppError('Please create at least one ticket tier before publishing', 400);
     }
 
+
     const defaultTicketTypeId = ticketTypes[0].id;
 
     // Run publishing inside an atomic transaction
-    return await withTransaction(async (client) => {
+    const atomicResult = await withTransaction(async (client) => {
 
         //Copy physical venue_seats - event_seats
         const seatsCreated = await eventRepo.instantiateEventSeats(
@@ -143,26 +150,56 @@ export const publishEvent = async (userId, eventId) => {
 
         // Change event status to PUBLISHED
         const updatedEvent = await eventRepo.updateEventStatus(eventId, 'PUBLISHED', client);
-
         return {
             event: updatedEvent,
             seatsInstantiated: seatsCreated,
         };
+
     });
+
+    await deleteCache(`event:${eventId}`);
+    return atomicResult;
 };
 
 //  PUBLIC DISCOVERY 
 
-export const getEvents = async (queryFilters) => {
-    return await eventRepo.getPublishedEvents(queryFilters);
+export const getEvents = async (queryParams) => {
+    const { city, category } = queryParams;
+    const parsedLimit = parseInt(queryParams.limit, 10) || 10;
+    const limit = Math.min(Math.max(parsedLimit, 1), 50);
+    const cursor = decodeCursor(queryParams.cursor);
+
+    const rows = await eventRepo.getPublishedEventsPaginated({
+        city,
+        category,
+        limit,
+        cursor,
+    });
+
+    return formatPaginationResponse(rows, limit, (item) => ({
+        startTime: item.start_time,
+        id: item.id,
+    }));
 };
 
 export const getEvent = async (id) => {
+
+    const cacheKey = `event:${id}`
+
+    const cachedEvent = await getCache(cacheKey);
+    if (cachedEvent) {
+        return cachedEvent; //cache HIT
+    }
+
+
     const event = await eventRepo.getEventById(id);
     if (!event) throw new AppError('Event not found', 404);
 
     const ticketTypes = await eventRepo.getTicketTypesByEventId(id);
-    return { ...event, ticketTypes };
+    const result = { ...event, ticketTypes };
+
+    await setCache(cacheKey, result, 600) // store in Redis for 10 min (600 sec)
+    return result;
 };
 
 export const getEventSeats = async (eventId) => {

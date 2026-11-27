@@ -102,9 +102,10 @@ export const getBookingWithItems = async (bookingId) => {
 };
 
 //Fetching booking history for the logged-in customer
+//Cursor-based paginated user bookings
 
-export const getUserBookings = async (userId) => {
-    const sql = `
+export const getUserBookingsPaginated = async (userId, { limit = 10, cursor = null }) => {
+    let sql = `
     SELECT 
         b.id, b.event_id, b.total_amount, b.status, b.expires_at, b.created_at,
         e.title AS event_title, e.start_time,
@@ -113,9 +114,20 @@ export const getUserBookings = async (userId) => {
     JOIN events e ON b.event_id = e.id
     JOIN venues v ON e.venue_id = v.id
     WHERE b.user_id = $1
-    ORDER BY b.created_at DESC;
   `;
+    const params = [userId];
 
-    const result = await query(sql, [userId]);
+    if (cursor && cursor.createdAt && cursor.id) {
+        params.push(cursor.createdAt, cursor.id);
+        sql += ` AND (b.created_at, b.id) < ($${params.length - 1}, $${params.length})`;
+    }
+
+    params.push(limit + 1);
+    sql += `
+    ORDER BY b.created_at DESC, b.id DESC
+    LIMIT $${params.length};
+  `;
+  
+    const result = await query(sql, params);
     return result.rows;
 };

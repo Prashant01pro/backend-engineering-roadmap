@@ -1,6 +1,6 @@
 # Backend Development Learning Series
 
-A comprehensive, hands-on backend learning repository demonstrating the evolution of modern authentication, authorization, session architectures, full-stack REST API design, financial modeling, and multi-collection aggregations using **Node.js**, **Express**, **MongoDB**, and **Redis**.
+A comprehensive, hands-on backend learning repository demonstrating the evolution of modern authentication, authorization, session architectures, full-stack REST API design, financial modeling, and relational concurrency engineering using **Node.js**, **Express**, **PostgreSQL**, **MongoDB**, and **Redis**.
 
 This repository is designed for developers, students, and engineers who want to study production-grade backend design patterns from first principles.
 
@@ -21,7 +21,8 @@ The projects are structured sequentially, progressing from core token-based auth
     ├── campusStoreX/                     # Phase 6: Database-First Marketplace Architecture (Embedding vs Referencing, ACID Transactions, Race Conditions, Concurrency & Aggregations)
     ├── secureVault-7/                    # Phase 7: Zero-Trust Secure File & Document Management Platform (Storage Adapter, Magic Bytes, Sharp, Signed URLs, Rate Limiting & Security Lab)
     ├── orchestriX-8/                     # Phase 8: Distributed Job Orchestration, Real-Time Event Streaming & Hybrid Auth Engine (BullMQ, Redis Pub/Sub, SSE, Dual-Write Reconciliation, DLQ)
-    └── signalDesk-9/                     # Phase 9: Real-Time Incident Intelligence & Collaboration Platform (CRDTs, Yjs, Hocuspocus, Socket.IO, Multi-Tab Presence, Sharp, Keyset Pagination, Redis Cache-Aside)
+    ├── signalDesk-9/                     # Phase 9: Real-Time Incident Intelligence & Collaboration Platform (CRDTs, Yjs, Hocuspocus, Socket.IO, Multi-Tab Presence, Sharp, Keyset Pagination, Redis Cache-Aside)
+    └── seatFlows-10/                     # Phase 10: Real-Time Event Booking & Ticketing Engine (PostgreSQL Raw SQL, SELECT FOR UPDATE, Deadlock Prevention, CTE Expiration Worker, Keyset Pagination, Upstash Redis)
 ```
 
 ---
@@ -173,12 +174,29 @@ The projects are structured sequentially, progressing from core token-based auth
 
 ---
 
-## 🛠️ Tech Stack & Tools
+### 10. [SeatFlow — Real-Time Event Booking & Ticketing System](./seatFlows-10)
+> **Focus**: High-concurrency relational engineering with **PostgreSQL (raw SQL)** and **Upstash Redis**. Mastering ACID transactions, pessimistic row-level locking (`SELECT ... FOR UPDATE`), deadlock prevention, atomic CTE expiration cleanup, idempotent payments, and keyset pagination with composite/partial B-tree indexes.
+
+- **Key Concepts**:
+  - **Normalized 10-Table Relational Schema (Raw SQL Migrations)**: Topologically ordered PostgreSQL schema (`users`, `venues`, `organizers`, `venue_seats`, `events`, `ticket_types`, `bookings`, `event_seats`, `booking_items`, `payments`) with `UUID` public IDs, `BIGINT` identity keys, `NUMERIC(10,2)` currency precision, and `CHECK`/`UNIQUE` database constraints.
+  - **Double-Booking Defense (`SELECT ... FOR UPDATE`)**: Wraps seat reservations inside `withTransaction` using exclusive pessimistic row-level locks (`ORDER BY es.id ASC FOR UPDATE`) and `UNIQUE (event_id, venue_seat_id)` constraints. Proven under simultaneous 20-user load (`1` Winner / `19` Blocked `409 Conflict` / `0` Errors).
+  - **Deadlock Prevention (Deterministic Lock Ordering)**: Deduplicates and numerically sorts requested `eventSeatIds` before acquiring locks, mathematically eliminating circular wait deadlocks (`40P01`).
+  - **Abandoned Checkout Recovery (Atomic CTE Worker)**: Background worker (`cleanupExpiredBookings.js`) runs every 30s executing a single atomic Common Table Expression (`WITH expired_bookings AS ...`) to expire `PENDING` holds past `expires_at` and release `event_seats` back to `AVAILABLE`, accelerated by partial index `idx_bookings_expires_at`.
+  - **Decoupled Finite State Machines & Payment Idempotency**: Strictly isolates Seat (`AVAILABLE` → `RESERVED` → `BOOKED`), Booking (`PENDING` → `CONFIRMED` / `EXPIRED`), and Payment (`PENDING` → `SUCCESS` / `FAILED`) states. Uses `UNIQUE idempotency_key` and booking row locks (`FOR UPDATE`) so failed payments never destroy active holds and duplicate retries never double-charge.
+  - **High-Performance Bulk Inventory (`generate_series`)**: Generates thousands of physical `venue_seats` in a single `CROSS JOIN` query and instantiates `event_seats` via `INSERT INTO ... SELECT` on event publish.
+  - **Keyset (Cursor-Based) Pagination with Composite & Partial Indexes**: Eliminates `OFFSET` degradation and duplicate-timestamp skipping via Base64URL opaque cursors, `limit + 1` lookahead, tuple comparisons `(created_at, id) < ($2, $3)` (bookings) and `(start_time, id) > ($2, $3)` (events), backed by `idx_bookings_user_cursor` and partial index `idx_events_published_cursor`.
+  - **Upstash Redis Cache-Aside & Graceful Degradation**: Caches read-heavy event details (`GET /api/v1/events/:id`) over TLS (`rediss://`) with post-mutation invalidation and automatic PostgreSQL fallback if Redis is unavailable.
+  - **Production Resilience**: Centralized fail-fast configuration (`src/config/env.js`), connection-leak-proof `withTransaction` (`finally { client.release() }`), and graceful shutdown handling `SIGINT`/`SIGTERM` (HTTP server, `pool.end()`, `redis.quit()`).
+- **Documentation**: [SeatFlow Master Readme](./seatFlows-10/README.md), [Route-by-Route Making Blueprint](./seatFlows-10/docs/ROUTES_BLUEPRINT.md), [Database Architecture](./seatFlows-10/docs/databaseArchitecture.md), [Zombie Hold Solution](./seatFlows-10/docs/problemSoln.md), & [Performance Engineering](./seatFlows-10/docs/performance.md)
+
+---
+
+##  Tech Stack & Tools
 
 - **Runtime**: Node.js (v18+ / v20+ / v22+)
 - **Framework**: Express.js (v5) — ES Modules (`"type": "module"`)
-- **Primary Database**: MongoDB & Mongoose ODM
-- **Cache / Session Store / Rate Limiting**: Redis (via `ioredis`)
+- **Primary Databases**: PostgreSQL (raw SQL via `pg`) & MongoDB (Mongoose ODM)
+- **Cache / Session Store / Rate Limiting**: Redis (via `redis` with Upstash TLS & `ioredis`)
 - **Queue Engine & Background Workers**: BullMQ (v5)
 - **Pub/Sub & Real-Time Streaming**: Redis Pub/Sub, Server-Sent Events (SSE)
 - **Logging & Tracing**: Pino, Pino-HTTP, `X-Request-ID` correlation IDs

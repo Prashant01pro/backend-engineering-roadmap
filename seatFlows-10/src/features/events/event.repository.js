@@ -85,7 +85,7 @@ export const getEventById = async (id) => {
     return result.rows[0] || null;
 };
 
-export const getPublishedEvents = async ({ city, category }) => {
+export const getPublishedEventsPaginated = async ({ city, category, limit = 10, cursor = null }) => {
     let sql = `
     SELECT 
         e.id, e.title, e.description, e.category, e.start_time, e.end_time,
@@ -107,7 +107,15 @@ export const getPublishedEvents = async ({ city, category }) => {
         sql += ` AND LOWER(e.category) = LOWER($${params.length})`;
     }
 
-    sql += ` ORDER BY e.start_time ASC;`;
+    if (cursor && cursor.startTime && cursor.id) {
+        params.push(cursor.startTime, cursor.id);
+        sql += ` AND (e.start_time, e.id) > ($${params.length - 1}, $${params.length})`;
+    }
+    params.push(limit + 1);
+    sql += `
+    ORDER BY e.start_time ASC, e.id ASC
+    LIMIT $${params.length};
+  `;
     const result = await query(sql, params);
     return result.rows;
 };

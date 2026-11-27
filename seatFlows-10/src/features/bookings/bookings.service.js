@@ -1,6 +1,7 @@
 import * as bookingRepo from './bookings.repository.js';
 import AppError from '../../utils/appError.js';
 import { withTransaction } from '../../config/db.js';
+import { decodeCursor, formatPaginationResponse } from '../../utils/pagination.js'
 
 export const createBookingReservation = async (userId, { eventSeatIds, holdMinutes = 10 }) => {
 
@@ -71,11 +72,20 @@ export const getBooking = async (userId, bookingId) => {
     if (booking.user_id !== userId) {
         throw new AppError('You do not have permission to view this booking', 403);
     }
-    
+
     return booking;
 };
 
 
-export const getMyBookings = async (userId) => {
-    return await bookingRepo.getUserBookings(userId);
+export const getMyBookings = async (userId, queryParams) => {
+    const limit = Math.min(Math.max(parseInt(queryParams.limit || '10', 10), 1), 50);
+
+    const cursor = decodeCursor(queryParams.cursor);
+
+    const rows = await bookingRepo.getUserBookingsPaginated(userId, { limit, cursor });
+
+    return formatPaginationResponse(rows, limit, (item) => ({
+        createdAt: item.created_at,
+        id: item.id
+    }))
 };

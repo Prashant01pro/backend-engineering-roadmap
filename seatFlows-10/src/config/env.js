@@ -32,4 +32,8 @@ export const env = Object.freeze({
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
+
+  redis: {
+    url: process.env.REDIS_URI || '',
+  },
 });

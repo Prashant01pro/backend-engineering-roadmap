@@ -15,6 +15,6 @@ export const getBooking = catchAsync(async (req, res) => {
 
 export const getMyBookings = catchAsync(async (req, res) => {
 
-    const bookings = await bookingService.getMyBookings(req.user.id);
-    res.status(200).json({ success: true, data: bookings });
+    const result = await bookingService.getMyBookings(req.user.id, req.query);
+    res.status(200).json({ success: true, data: result });
 });
